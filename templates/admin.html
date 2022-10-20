@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block main %}
+    {% if user.is_staff %}
+        {% if message %}
+            <p class="alert alert-success">
+                <strong>{{ message }}</strong>
+            </p>
+        {% endif %}
+        <div class="card mb-3">
+        <div class="card-body">
+        <form action="../post_riddle/" method="post">
+            {% csrf_token %}
+            <h5>Add riddle:</h5>
+            <div class="mb-3">
+                <input class="form-control"
+                       placeholder="Riddle text"
+                       name="text"
+                       required/>
+            </div>
+            <div class="card mb-3">
+            <div class="card-body" id="options_new">
+                <div class="mb-3">
+                    <input class="form-control"
+                           placeholder="Option 1 (correct)"
+                           name="option1"
+                           required/>
+                </div>
+                <div class="mb-3">
+                    <input class="form-control"
+                           placeholder="Option 2"
+                           name="option2"
+                           required/>
+                </div>
+                <script>
+                    var option_counter = 2;
+                </script>
+            </div>
+            </div>
+            <div class="mb-3">
+                <button class="btn btn-success"
+                        onclick="addOption('options_new', 0)"
+                        type="button">
+                    + Add option
+                </button>
+                <button class="btn btn-success">
+                    Save
+                </button>
+            </div>
+            <input type="hidden"
+                   name="riddle_id"
+                   value="0"/>
+        </form>
+        </div>
+        </div>
+        <div class="card mb-3">
+        <div class="card-body">
+        <h4 class="card-title">Available Riddles</h4>
+        {% if latest_riddles %}
+            <ul>
+                {% for riddle in latest_riddles %}
+                    <li>
+                        <a href="/riddles/{{ riddle.id }}/">
+                            {{ riddle.riddle_text }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No riddles are available right now.</p>
+        {% endif %}
+        </div>
+        </div>
+
+        <script>
+        //добавление блока для нового ответа
+        function addOption(target, pos_in_array){
+            var option=document.createElement("div");
+            option_counter += 1;
+            option.className="input-group mb-3";
+            option.innerHTML=
+                '<input class="form-control"' +
+                '       placeholder="Option ' + 
+                        option_counter + '"' + 
+                '       name="option' + option_counter + '"/>' +
+                '<div class="input-group-append">' +
+                '     <button class="btn btn-danger"' +
+                '             type="button"' +
+                '             onclick="removeParent(' +
+                '               this.parentNode)">' +
+                '          Delete' +
+                '     </button>' +
+                '</div>';
+            document.getElementById(target).appendChild(option);
+        }
+        //удаление блока ответа с поправкой номеров других ответов
+        function removeParent(child){
+            var optionList=child.parentNode.parentNode;
+            var currentOption=child.parentNode;
+            optionList.removeChild(currentOption);
+            for(var i=3; i<optionList.children.length; i+=1){
+                var opt=optionList.children[i].children[0];
+                opt.name="option"+(i);
+                opt.placeholder="Option "+(i);
+            }
+            option_counter -= 1;
+        }
+        </script>
+    {% else %}
+        <h4>Access denied.</h4>
+    {% endif %}
+{% endblock %}

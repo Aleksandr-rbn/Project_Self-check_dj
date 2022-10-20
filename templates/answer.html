@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block main %}
+<h4 class="card-title">{{ riddle.riddle_text }}</h4>
+{% if error_message %}
+    <p class="alert alert-danger">
+        <strong>{{ error_message }}</strong>
+    </p>
+{% endif %}
+<form action="answer/" method="post">
+    {% csrf_token %}
+    {% for option in riddle.option_set.all %}
+        <input type="radio" name="option" 
+            id="option{{ forloop.counter }}" 
+            value="{{ option.id }}"/>
+        <label for="option{{ forloop.counter }}">
+            {{ option.text }}
+        </label><br>
+    {% endfor %}
+    <input type="submit" value="Answer"/>
+</form>
+<hr>
+<h4>Rating</h4>
+    <p>Average rating:
+        <span id="avg_mark_span">
+            {{ avg_mark }}
+        </span>
+    </p>
+{% if user.is_authenticated %}
+    {% if already_rated_by_user <= 0 or already_rated_by_user ==  None %}
+        <form action="post_mark/" method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-sm text-center">
+                    <input name="mark"
+                           type="radio"
+                           value="1"/> 1
+                </div>
+                <div class="col-sm text-center">
+                    <input name="mark"
+                           type="radio"
+                           value="2"/> 2
+                </div>
+                <div class="col-sm text-center">
+                    <input name="mark"
+                           type="radio"
+                           value="3"/> 3
+                </div>
+                <div class="col-sm text-center">
+                    <input name="mark"
+                           type="radio"
+                           value="4"/> 4
+                </div>
+                <div class="col-sm text-center">
+                    <input name="mark"
+                           type="radio"
+                           value="5"/> 5
+                </div>
+                <div class="col-sm text-center">
+                    <input class="btn btn-success"
+                        type="submit"
+                        value="Send mark"/>
+                </div>
+            </div>
+        </form>
+        {% else %}
+        Your rating: {{ user_rating }}
+    {% endif %}
+
+{% endif %}
+<hr>
+<h4>Chat</h4>
+{% if user.is_authenticated %}
+    <form action="post/" method="post">
+    {% csrf_token %}
+    <div class="input-group mb-3">
+      <input type="text"
+             class="form-control"
+             placeholder="Your message"
+             name="message"/>
+      <div class="input-group-append">
+        <input class="btn btn-success"
+                type="submit"
+                value="Send"/>
+      </div>
+    </div>
+</form>
+{% endif %}
+<div id="history">
+    {% for message in latest_messages %}
+        <div class="card">
+        <div class="card-body">
+            <strong>
+                {{ message.author.username }}
+            </strong>
+            <br/>
+            <em>
+                {{ message.pub_date|date:'Y-m-d H:i:s' }}
+            </em>
+            <br/>
+            {{ message.message }}
+        </div>
+        </div>
+        <br/>
+    {% endfor %}
+</div>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js">
+</script>
+<script>
+function send_msg_update_request(){
+    $.get("msg_list/",{},parse_msg_update_response);
+    $.get("get_mark/",{},parse_mark_update_response);
+}
+function parse_msg_update_response(data, success){
+    //alert(data);
+    res = JSON.parse(data);
+    res_str = "";
+    for(i=0;i<res.length;i++){
+
+        res_str += '<div class="card">\n' +
+            '        <div class="card-body">\n' +
+            '            <strong>\n' +
+            '                '+res[i].author__username+'\n' +
+            '            </strong>\n' +
+            '            <br/>\n' +
+            '            <em>\n' +
+            '                '+res[i].pub_date+'\n' +
+            '            </em>\n' +
+            '            <br/>\n' +
+            '            '+res[i].message+'\n' +
+            '        </div>\n' +
+            '        </div>\n' +
+            '        <br/>'
+    }
+    $("#history").html(res_str);
+}
+function parse_mark_update_response(data, success){
+    res = JSON.parse(data);
+    $("#avg_mark_span").html(res["mark__avg"].toFixed(1));
+}
+setInterval(send_msg_update_request, 5000);
+</script>
+{% endblock %}
