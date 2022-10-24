@@ -3,7 +3,7 @@ from .models import Riddle, Option, Message, Mark
 from django.views.generic.edit import FormView
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseNotFound, Http404
 from django.views.generic.base import View
 from django.contrib.auth import logout
 from django.contrib.auth.forms import PasswordChangeForm
@@ -11,6 +11,7 @@ from datetime import datetime
 from django.http import JsonResponse
 from django.db.models import Avg
 import json
+import numpy
 
 app_url = "/riddles/"
 
@@ -67,7 +68,7 @@ def index(request):
         "index.html",
         {
             "latest_riddles":
-                Riddle.objects.order_by('-pub_date')[:5],
+                Riddle.objects.order_by('pub_date')[::],
             "message": message
         }
     )
@@ -80,10 +81,24 @@ def detail(request, riddle_id):
     error_message = None
     if "error_message" in request.GET:
         error_message = request.GET["error_message"]
+    # формируем список ответов
+    ordered_option_set = \
+        list(Option.objects.filter(riddle_id=riddle_id))
+    # формируем случайный порядок номеров ответов
+    option_iter = \
+        numpy.random.permutation(len(ordered_option_set))
+    # формируем новый список, в который выписываем ответы
+    # в сформированном случайном порядке
+    option_set = []
+    for num in option_iter:
+        option_set.append(ordered_option_set[num])
     return render(
         request,
         "answer.html",
         {
+            # передаем список ответов в случайном порядке
+            "option_set": option_set,
+
             "riddle": get_object_or_404(
                 Riddle, pk=riddle_id),
             "error_message": error_message,
@@ -177,7 +192,7 @@ def admin(request):
         "admin.html",
         {
             "latest_riddles":
-                Riddle.objects.order_by('-pub_date')[:5],
+                Riddle.objects.order_by('pub_date')[:5],
             "message": message,
         }
     )
@@ -223,3 +238,8 @@ def get_mark(request, riddle_id):
             .aggregate(Avg('mark'))
 
     return JsonResponse(json.dumps(res), safe=False)
+
+
+
+def pageNotFound(request, exception):
+    return HttpResponseNotFound('<h1>Страница не найдена</1>')

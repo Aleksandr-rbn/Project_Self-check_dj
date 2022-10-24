@@ -8,10 +8,11 @@
 {% endif %}
 <form action="answer/" method="post">
     {% csrf_token %}
-    {% for option in riddle.option_set.all %}
-        <input type="radio" name="option" 
-            id="option{{ forloop.counter }}" 
-            value="{{ option.id }}"/>
+    {% for option in option_set %}
+        <input type="radio"
+               name="option"
+               id="option{{ forloop.counter }}"
+               value="{{ option.id }}"/>
         <label for="option{{ forloop.counter }}">
             {{ option.text }}
         </label><br>

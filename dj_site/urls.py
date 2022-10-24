@@ -17,9 +17,15 @@ from django.contrib import admin
 from django.urls import path, re_path
 from django.conf.urls import include
 
+import riddles.views
+from riddles.views import pageNotFound, index
 
+# from riddles.views import pageNotFound
 
 urlpatterns = [
     re_path(r'^riddles/', include('riddles.urls')),
     re_path(r'^admin/', admin.site.urls),
+    re_path(r'^$', riddles.views.index, name='index')
 ]
+
+handler404 = pageNotFound
