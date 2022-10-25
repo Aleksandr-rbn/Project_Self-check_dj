@@ -9,7 +9,7 @@
 <form action="answer/" method="post">
     {% csrf_token %}
     {% for option in option_set %}
-        <input type="radio"
+        <input type="checkbox"
                name="option"
                id="option{{ forloop.counter }}"
                value="{{ option.id }}"/>
@@ -33,22 +33,22 @@
             <div class="row">
                 <div class="col-sm text-center">
                     <input name="mark"
-                           type="radio"
+                           type="checkbox"
                            value="1"/> 1
                 </div>
                 <div class="col-sm text-center">
                     <input name="mark"
-                           type="radio"
+                           type="checkbox"
                            value="2"/> 2
                 </div>
                 <div class="col-sm text-center">
                     <input name="mark"
-                           type="radio"
+                           type="checkbox"
                            value="3"/> 3
                 </div>
                 <div class="col-sm text-center">
                     <input name="mark"
-                           type="radio"
+                           type="checkbox"
                            value="4"/> 4
                 </div>
                 <div class="col-sm text-center">
